@@ -457,6 +457,19 @@ public class NDArray {
         return this.doubleData;
     }
 
+    //--------------------------------------------------
+    // Function to check type of data stored
+    //--------------------------------------------------
+
+    public int getDataType() {
+        if (byteData != null) return DataType.Int8;
+        else if (shortData != null) return DataType.Int16;
+        else if (intData != null) return DataType.Int32;
+        else if (longData != null) return DataType.Int64;
+        else if (floatData != null) return DataType.Float;
+        else if (doubleData != null) return DataType.Double;
+        else return DataType.Nothing;
+    }
 
     //--------------------------------------------------
     // Utility functions

@@ -646,6 +646,152 @@ public class DataArray extends EntityWithSources {
     @Cast("nix::DataType")
     int getDataType();
 
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") byte[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") short[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") int[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") long[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") float[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") double[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") byte[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") short[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") int[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") long[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") float[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") double[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    /**
+     * Write ND-Array data to data array.
+     *
+     * @param ndArray nd array
+     */
+    public void setData(NDArray ndArray) {
+        NDSize offset = new NDSize();
+        NDSize dims = new NDSize(ndArray.getShape());
+        setDataExtent(dims);
+
+        int dataArrayType = getDataType();
+        switch (dataArrayType) {
+            case DataType.Int8:
+                setDataDirect(dataArrayType, ndArray.getByteDataArray(), dims, offset);
+                break;
+
+            case DataType.Int16:
+                setDataDirect(dataArrayType, ndArray.getShortDataArray(), dims, offset);
+                break;
+
+            case DataType.Int32:
+                setDataDirect(dataArrayType, ndArray.getIntDataArray(), dims, offset);
+                break;
+
+            case DataType.Int64:
+                setDataDirect(dataArrayType, ndArray.getLongDataArray(), dims, offset);
+                break;
+
+            case DataType.Float:
+                setDataDirect(dataArrayType, ndArray.getFloatDataArray(), dims, offset);
+                break;
+
+            case DataType.Double:
+                setDataDirect(dataArrayType, ndArray.getDoubleDataArray(), dims, offset);
+                break;
+        }
+    }
+
+    /**
+     * Get written ND-Array from data array.
+     *
+     * @return nd array
+     */
+    public NDArray getData() {
+        NDSize dims = getDataExtent();
+        NDSize offset = new NDSize();
+        int dataArrayType = getDataType();
+        int size = (int) dims.getElementsProduct();
+
+        switch (dataArrayType) {
+            case DataType.Int8:
+                byte[] byteData = new byte[size];
+                getDataDirect(dataArrayType, byteData, dims, new NDSize());
+                return new NDArray(byteData, dims.getData());
+
+            case DataType.Int16:
+                short[] shortData = new short[size];
+                getDataDirect(dataArrayType, shortData, dims, new NDSize());
+                return new NDArray(shortData, dims.getData());
+
+            case DataType.Int32:
+                int[] intData = new int[size];
+                getDataDirect(dataArrayType, intData, dims, new NDSize());
+                return new NDArray(intData, dims.getData());
+
+            case DataType.Int64:
+                long[] longData = new long[size];
+                getDataDirect(dataArrayType, longData, dims, new NDSize());
+                return new NDArray(longData, dims.getData());
+
+            case DataType.Float:
+                float[] floatData = new float[size];
+                getDataDirect(dataArrayType, floatData, dims, new NDSize());
+                return new NDArray(floatData, dims.getData());
+
+            case DataType.Double:
+                double[] doubleData = new double[size];
+                getDataDirect(dataArrayType, doubleData, dims, new NDSize());
+                return new NDArray(doubleData, dims.getData());
+
+            default:
+                return null;
+        }
+    }
+
     //--------------------------------------------------
     // Overrides
     //--------------------------------------------------
