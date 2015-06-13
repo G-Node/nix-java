@@ -523,15 +523,24 @@ public class DataArray extends EntityWithSources {
     @Cast("size_t")
     long getDimensionCount();
 
+    private native
+    @Name("getDimension")
+    @ByVal
+    Dimension fetchDimension(@Cast("size_t") long id);
+
     /**
      * Returns the Dimension object for the specified dimension of the data.
      *
      * @param id The index of the respective dimension.
      * @return The dimension object.
      */
-    public native
-    @ByVal
-    Dimension getDimension(@Cast("size_t") long id);
+    public Dimension getDimension(long id) {
+        Dimension dimension = fetchDimension(id);
+        if (dimension.isInitialized()) {
+            return dimension;
+        }
+        return null;
+    }
 
     /**
      * Append a new SetDimension to the list of existing dimension descriptors.
@@ -710,38 +719,111 @@ public class DataArray extends EntityWithSources {
     /**
      * Write ND-Array data to data array.
      *
-     * @param ndArray nd array
+     * @param dataType type
+     * @param ndArray  data
+     * @param count    shape
+     * @param offset   offset
      */
-    public void setData(NDArray ndArray) {
-        NDSize offset = new NDSize();
-        NDSize dims = new NDSize(ndArray.getShape());
-        setDataExtent(dims);
+    public void setData(int dataType, NDArray ndArray, NDSize count, NDSize offset) {
 
-        int dataArrayType = getDataType();
-        switch (dataArrayType) {
+        switch (dataType) {
             case DataType.Int8:
-                setDataDirect(dataArrayType, ndArray.getByteDataArray(), dims, offset);
+                setDataDirect(dataType, ndArray.getByteDataArray(), count, offset);
                 break;
 
             case DataType.Int16:
-                setDataDirect(dataArrayType, ndArray.getShortDataArray(), dims, offset);
+                setDataDirect(dataType, ndArray.getShortDataArray(), count, offset);
                 break;
 
             case DataType.Int32:
-                setDataDirect(dataArrayType, ndArray.getIntDataArray(), dims, offset);
+                setDataDirect(dataType, ndArray.getIntDataArray(), count, offset);
                 break;
 
             case DataType.Int64:
-                setDataDirect(dataArrayType, ndArray.getLongDataArray(), dims, offset);
+                setDataDirect(dataType, ndArray.getLongDataArray(), count, offset);
                 break;
 
             case DataType.Float:
-                setDataDirect(dataArrayType, ndArray.getFloatDataArray(), dims, offset);
+                setDataDirect(dataType, ndArray.getFloatDataArray(), count, offset);
                 break;
 
             case DataType.Double:
-                setDataDirect(dataArrayType, ndArray.getDoubleDataArray(), dims, offset);
+                setDataDirect(dataType, ndArray.getDoubleDataArray(), count, offset);
                 break;
+
+            default:
+                throw new IllegalArgumentException("Error : data type not supported");
+        }
+    }
+
+    /**
+     * Write ND-Array data to data array.
+     *
+     * @param ndArray nd array
+     */
+    public void setData(NDArray ndArray) {
+        NDSize dims = new NDSize(ndArray.getShape());
+        setDataExtent(dims);
+        setData(ndArray.getDataType(), ndArray, dims, new NDSize());
+    }
+
+    /**
+     * Write ND-Array data to data array.
+     *
+     * @param ndArray nd array
+     * @param offset  offset
+     */
+    public void setData(NDArray ndArray, NDSize offset) {
+        NDSize dims = new NDSize(ndArray.getShape());
+        setDataExtent(dims);
+        setData(ndArray.getDataType(), ndArray, dims, offset);
+    }
+
+    /**
+     * Get written ND-Array from data array.
+     *
+     * @param dataType type
+     * @param count    shape
+     * @param offset   offset
+     * @return ndarray
+     */
+    public NDArray getData(int dataType, NDSize count, NDSize offset) {
+
+        int size = (int) count.getElementsProduct();
+
+        switch (dataType) {
+            case DataType.Int8:
+                byte[] byteData = new byte[size];
+                getDataDirect(dataType, byteData, count, offset);
+                return new NDArray(byteData, count.getData());
+
+            case DataType.Int16:
+                short[] shortData = new short[size];
+                getDataDirect(dataType, shortData, count, offset);
+                return new NDArray(shortData, count.getData());
+
+            case DataType.Int32:
+                int[] intData = new int[size];
+                getDataDirect(dataType, intData, count, offset);
+                return new NDArray(intData, count.getData());
+
+            case DataType.Int64:
+                long[] longData = new long[size];
+                getDataDirect(dataType, longData, count, offset);
+                return new NDArray(longData, count.getData());
+
+            case DataType.Float:
+                float[] floatData = new float[size];
+                getDataDirect(dataType, floatData, count, offset);
+                return new NDArray(floatData, count.getData());
+
+            case DataType.Double:
+                double[] doubleData = new double[size];
+                getDataDirect(dataType, doubleData, count, offset);
+                return new NDArray(doubleData, count.getData());
+
+            default:
+                throw new IllegalArgumentException("Error : data type not supported");
         }
     }
 
@@ -751,45 +833,17 @@ public class DataArray extends EntityWithSources {
      * @return nd array
      */
     public NDArray getData() {
-        NDSize dims = getDataExtent();
-        NDSize offset = new NDSize();
-        int dataArrayType = getDataType();
-        int size = (int) dims.getElementsProduct();
+        return getData(getDataType(), getDataExtent(), new NDSize());
+    }
 
-        switch (dataArrayType) {
-            case DataType.Int8:
-                byte[] byteData = new byte[size];
-                getDataDirect(dataArrayType, byteData, dims, new NDSize());
-                return new NDArray(byteData, dims.getData());
-
-            case DataType.Int16:
-                short[] shortData = new short[size];
-                getDataDirect(dataArrayType, shortData, dims, new NDSize());
-                return new NDArray(shortData, dims.getData());
-
-            case DataType.Int32:
-                int[] intData = new int[size];
-                getDataDirect(dataArrayType, intData, dims, new NDSize());
-                return new NDArray(intData, dims.getData());
-
-            case DataType.Int64:
-                long[] longData = new long[size];
-                getDataDirect(dataArrayType, longData, dims, new NDSize());
-                return new NDArray(longData, dims.getData());
-
-            case DataType.Float:
-                float[] floatData = new float[size];
-                getDataDirect(dataArrayType, floatData, dims, new NDSize());
-                return new NDArray(floatData, dims.getData());
-
-            case DataType.Double:
-                double[] doubleData = new double[size];
-                getDataDirect(dataArrayType, doubleData, dims, new NDSize());
-                return new NDArray(doubleData, dims.getData());
-
-            default:
-                return null;
-        }
+    /**
+     * Get written ND-Array from data array.
+     *
+     * @param offset offset
+     * @return nd array
+     */
+    public NDArray getData(NDSize offset) {
+        return getData(getDataType(), getDataExtent(), offset);
     }
 
     //--------------------------------------------------
