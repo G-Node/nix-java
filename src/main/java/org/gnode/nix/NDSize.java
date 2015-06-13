@@ -115,4 +115,30 @@ public class NDSize extends Pointer {
     @Name("empty")
     @Cast("bool")
     boolean isEmpty();
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (!(obj instanceof NDSize)) {
+            return false;
+        }
+
+        int[] dims1 = this.getData();
+        int[] dims2 = ((NDSize) obj).getData();
+
+        if (dims1.length != dims2.length) {
+            return false;
+        }
+
+        for (int i = 0; i < dims1.length; i++) {
+            if (dims1[i] != dims2[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
