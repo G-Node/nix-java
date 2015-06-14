@@ -465,6 +465,40 @@ public class Block extends EntityWithMetadata {
     }
 
     /**
+     * Create a new data array associated with this block.
+     *
+     * @param name     The name of the data array to create.
+     * @param type     The type of the data array.
+     * @param ndArray  Data to create array with.
+     * @param dataType type of data.
+     * @return The newly created data array.
+     */
+    public DataArray createDataArray(String name, String type, NDArray ndArray, int dataType) {
+        DataArray da = makeDataArray(name, type, dataType, new NDSize(ndArray.getShape()));
+        if (da.isInitialized()) {
+            da.setData(ndArray);
+            return da;
+        }
+        return null;
+    }
+
+    /**
+     * Create a new data array associated with this block.
+     * <p/>
+     * Create a data array with shape and type inferred from data. After
+     * successful creation, the contents of data will be written to the
+     * data array.
+     *
+     * @param name    The name of the data array to create.
+     * @param type    The type of the data array.
+     * @param ndArray Data to create array with.
+     * @return The newly created data array.
+     */
+    public DataArray createDataArray(String name, String type, NDArray ndArray) {
+        return createDataArray(name, type, ndArray, ndArray.getDataType());
+    }
+
+    /**
      * Deletes a data array from this block.
      * <p/>
      * This deletes a data array and all its dimensions from the block and the file.
