@@ -349,6 +349,18 @@ public class TestTag {
         List<DataArray> reference = new ArrayList<DataArray>();
         reference.add(data_array);
 
+        NDArray data = new NDArray(new int[]{2, 10, 5}, DataType.Int32);
+        int value;
+        for (int i = 0; i != 2; ++i) {
+            value = 0;
+            for (int j = 0; j != 10; ++j) {
+                for (int k = 0; k != 5; ++k) {
+                    data.setIntData(new int[]{i, j, k}, value++);
+                }
+            }
+        }
+        data_array.setData(data);
+
         setDim = data_array.appendSetDimension();
         List<String> labels = Arrays.asList("label_a", "label_b");
         setDim.setLabels(labels);
