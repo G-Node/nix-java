@@ -639,6 +639,17 @@ public class MultiTag extends EntityWithSources {
         references(new DataArrayVector(references));
     }
 
+    /**
+     * Retrieves the data slice tagged by a certain position and extent
+     * of a certain reference.
+     *
+     * @param positionIndex  the index of the requested position.
+     * @param referenceIndex the index of the requested reference.
+     * @return the requested data.
+     */
+    public native
+    @ByVal
+    DataView retrieveData(@Cast("size_t") long positionIndex, @Cast("size_t") long referenceIndex);
 
     //--------------------------------------------------
     // Methods concerning features.
@@ -779,6 +790,17 @@ public class MultiTag extends EntityWithSources {
     @Cast("bool")
     boolean deleteFeature(@Const @ByRef Feature feature);
 
+    /**
+     * Retrieves the data stored in a feature related to a certain
+     * position of this tag.
+     *
+     * @param positionIndex The index of the requested position
+     * @param featureIndex  The index of the selected feature
+     * @return The data
+     */
+    public native
+    @ByVal
+    DataView retrieveFeatureData(@Cast("size_t") long positionIndex, @Cast("size_t") long featureIndex);
 
     //--------------------------------------------------
     // Overrides
