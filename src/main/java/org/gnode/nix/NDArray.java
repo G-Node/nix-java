@@ -28,11 +28,11 @@ public class NDArray {
     // strides
     private int[] stride;
 
-    // check if data array is initialized
-    private boolean isDataInitialized;
-
     // offset
     private int offset = 0;
+
+    // type
+    private int type = DataType.Nothing;
 
     //--------------------------------------------------
     // Base constructor.
@@ -43,7 +43,7 @@ public class NDArray {
      *
      * @param shape dimensions
      */
-    public NDArray(int[] shape) {
+    public NDArray(int[] shape, int dataType) {
         this.rank = shape.length;
 
         // copy dimensions
@@ -61,8 +61,37 @@ public class NDArray {
         // effective size of 1-D array
         this.size = calcArrayProduct(shape);
 
-        // set initialized to false
-        this.isDataInitialized = false;
+        switch (dataType) {
+            case DataType.Int8:
+                this.byteData = new byte[this.size];
+                break;
+
+            case DataType.Int16:
+                this.shortData = new short[this.size];
+                break;
+
+            case DataType.Int32:
+                this.intData = new int[this.size];
+                break;
+
+            case DataType.Int64:
+                this.longData = new long[this.size];
+                break;
+
+            case DataType.Float:
+                this.floatData = new float[this.size];
+                break;
+
+            case DataType.Double:
+                this.doubleData = new double[this.size];
+                break;
+
+            default:
+                throw new IllegalArgumentException("Error : invalid type");
+        }
+
+        // set type
+        this.type = dataType;
     }
 
     //--------------------------------------------------
@@ -97,14 +126,9 @@ public class NDArray {
      * @param shape dimensions
      */
     public NDArray(byte[] data, int[] shape) {
-        this(shape);
-
+        this(shape, DataType.Int8);
         validateSize(data.length);
-
-        this.byteData = new byte[this.size];
         System.arraycopy(data, 0, this.byteData, 0, this.size);
-
-        this.isDataInitialized = true;
     }
 
     /**
@@ -114,14 +138,9 @@ public class NDArray {
      * @param shape dimensions
      */
     public NDArray(short[] data, int[] shape) {
-        this(shape);
-
+        this(shape, DataType.Int16);
         validateSize(data.length);
-
-        this.shortData = new short[this.size];
         System.arraycopy(data, 0, this.shortData, 0, this.size);
-
-        this.isDataInitialized = true;
     }
 
     /**
@@ -131,14 +150,9 @@ public class NDArray {
      * @param shape dimensions
      */
     public NDArray(int[] data, int[] shape) {
-        this(shape);
-
+        this(shape, DataType.Int32);
         validateSize(data.length);
-
-        this.intData = new int[this.size];
         System.arraycopy(data, 0, this.intData, 0, this.size);
-
-        this.isDataInitialized = true;
     }
 
     /**
@@ -148,14 +162,9 @@ public class NDArray {
      * @param shape dimensions
      */
     public NDArray(long[] data, int[] shape) {
-        this(shape);
-
+        this(shape, DataType.Int64);
         validateSize(data.length);
-
-        this.longData = new long[this.size];
         System.arraycopy(data, 0, this.longData, 0, this.size);
-
-        this.isDataInitialized = true;
     }
 
     /**
@@ -165,14 +174,9 @@ public class NDArray {
      * @param shape dimensions
      */
     public NDArray(float[] data, int[] shape) {
-        this(shape);
-
+        this(shape, DataType.Float);
         validateSize(data.length);
-
-        this.floatData = new float[this.size];
         System.arraycopy(data, 0, this.floatData, 0, this.size);
-
-        this.isDataInitialized = true;
     }
 
     /**
@@ -182,14 +186,9 @@ public class NDArray {
      * @param shape dimensions
      */
     public NDArray(double[] data, int[] shape) {
-        this(shape);
-
+        this(shape, DataType.Double);
         validateSize(data.length);
-
-        this.doubleData = new double[this.size];
         System.arraycopy(data, 0, this.doubleData, 0, this.size);
-
-        this.isDataInitialized = true;
     }
 
     //--------------------------------------------------
@@ -204,13 +203,7 @@ public class NDArray {
      */
     public void setByteData(int[] indexes, byte value) {
         validateIndexes(indexes.length);
-
-        if (!this.isDataInitialized) {
-            this.byteData = new byte[this.size];
-            this.isDataInitialized = true;
-        } else {
-            validateNotNull(this.byteData, strByte);
-        }
+        validateNotNull(this.byteData, strByte);
 
         this.byteData[calcEffectiveIndex(indexes)] = value;
     }
@@ -223,13 +216,7 @@ public class NDArray {
      */
     public void setShortData(int[] indexes, short value) {
         validateIndexes(indexes.length);
-
-        if (!this.isDataInitialized) {
-            this.shortData = new short[this.size];
-            this.isDataInitialized = true;
-        } else {
-            validateNotNull(this.shortData, strShort);
-        }
+        validateNotNull(this.shortData, strShort);
 
         this.shortData[calcEffectiveIndex(indexes)] = value;
     }
@@ -242,13 +229,7 @@ public class NDArray {
      */
     public void setIntData(int[] indexes, int value) {
         validateIndexes(indexes.length);
-
-        if (!this.isDataInitialized) {
-            this.intData = new int[this.size];
-            this.isDataInitialized = true;
-        } else {
-            validateNotNull(this.intData, strInt);
-        }
+        validateNotNull(this.intData, strInt);
 
         this.intData[calcEffectiveIndex(indexes)] = value;
     }
@@ -261,13 +242,7 @@ public class NDArray {
      */
     public void setLongData(int[] indexes, long value) {
         validateIndexes(indexes.length);
-
-        if (!this.isDataInitialized) {
-            this.longData = new long[this.size];
-            this.isDataInitialized = true;
-        } else {
-            validateNotNull(this.longData, strLong);
-        }
+        validateNotNull(this.longData, strLong);
 
         this.longData[calcEffectiveIndex(indexes)] = value;
     }
@@ -280,13 +255,7 @@ public class NDArray {
      */
     public void setFloatData(int[] indexes, float value) {
         validateIndexes(indexes.length);
-
-        if (!this.isDataInitialized) {
-            this.floatData = new float[this.size];
-            this.isDataInitialized = true;
-        } else {
-            validateNotNull(this.floatData, strFloat);
-        }
+        validateNotNull(this.floatData, strFloat);
 
         this.floatData[calcEffectiveIndex(indexes)] = value;
     }
@@ -299,13 +268,7 @@ public class NDArray {
      */
     public void setDoubleData(int[] indexes, double value) {
         validateIndexes(indexes.length);
-
-        if (!this.isDataInitialized) {
-            this.doubleData = new double[this.size];
-            this.isDataInitialized = true;
-        } else {
-            validateNotNull(this.doubleData, strDouble);
-        }
+        validateNotNull(this.doubleData, strDouble);
 
         this.doubleData[calcEffectiveIndex(indexes)] = value;
     }
@@ -462,13 +425,7 @@ public class NDArray {
     //--------------------------------------------------
 
     public int getDataType() {
-        if (byteData != null) return DataType.Int8;
-        else if (shortData != null) return DataType.Int16;
-        else if (intData != null) return DataType.Int32;
-        else if (longData != null) return DataType.Int64;
-        else if (floatData != null) return DataType.Float;
-        else if (doubleData != null) return DataType.Double;
-        else return DataType.Nothing;
+        return this.type;
     }
 
     //--------------------------------------------------
