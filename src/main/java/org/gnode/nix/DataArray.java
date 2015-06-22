@@ -523,15 +523,24 @@ public class DataArray extends EntityWithSources {
     @Cast("size_t")
     long getDimensionCount();
 
+    private native
+    @Name("getDimension")
+    @ByVal
+    Dimension fetchDimension(@Cast("size_t") long id);
+
     /**
      * Returns the Dimension object for the specified dimension of the data.
      *
      * @param id The index of the respective dimension.
      * @return The dimension object.
      */
-    public native
-    @ByVal
-    Dimension getDimension(@Cast("size_t") long id);
+    public Dimension getDimension(long id) {
+        Dimension dimension = fetchDimension(id);
+        if (dimension.isInitialized()) {
+            return dimension;
+        }
+        return null;
+    }
 
     /**
      * Append a new SetDimension to the list of existing dimension descriptors.
@@ -645,6 +654,197 @@ public class DataArray extends EntityWithSources {
     @ByVal
     @Cast("nix::DataType")
     int getDataType();
+
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") byte[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") short[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") int[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") long[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") float[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void getDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("void*") double[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") byte[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") short[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") int[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") long[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") float[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    private native void setDataDirect(@Cast("nix::DataType") int dtype,
+                                      @Cast("const void*") double[] data,
+                                      @Const @ByRef NDSize count,
+                                      @Const @ByRef NDSize offset);
+
+    /**
+     * Write ND-Array data to data array.
+     *
+     * @param dataType type
+     * @param ndArray  data
+     * @param count    shape
+     * @param offset   offset
+     */
+    public void setData(int dataType, NDArray ndArray, NDSize count, NDSize offset) {
+
+        switch (dataType) {
+            case DataType.Int8:
+                setDataDirect(dataType, ndArray.getByteDataArray(), count, offset);
+                break;
+
+            case DataType.Int16:
+                setDataDirect(dataType, ndArray.getShortDataArray(), count, offset);
+                break;
+
+            case DataType.Int32:
+                setDataDirect(dataType, ndArray.getIntDataArray(), count, offset);
+                break;
+
+            case DataType.Int64:
+                setDataDirect(dataType, ndArray.getLongDataArray(), count, offset);
+                break;
+
+            case DataType.Float:
+                setDataDirect(dataType, ndArray.getFloatDataArray(), count, offset);
+                break;
+
+            case DataType.Double:
+                setDataDirect(dataType, ndArray.getDoubleDataArray(), count, offset);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Error : data type not supported");
+        }
+    }
+
+    /**
+     * Write ND-Array data to data array.
+     *
+     * @param ndArray nd array
+     */
+    public void setData(NDArray ndArray) {
+        NDSize dims = new NDSize(ndArray.getShape());
+        setDataExtent(dims);
+        setData(ndArray.getDataType(), ndArray, dims, new NDSize());
+    }
+
+    /**
+     * Write ND-Array data to data array.
+     *
+     * @param ndArray nd array
+     * @param offset  offset
+     */
+    public void setData(NDArray ndArray, NDSize offset) {
+        NDSize dims = new NDSize(ndArray.getShape());
+        setDataExtent(dims);
+        setData(ndArray.getDataType(), ndArray, dims, offset);
+    }
+
+    /**
+     * Get written ND-Array from data array.
+     *
+     * @param dataType type
+     * @param count    shape
+     * @param offset   offset
+     * @return ndarray
+     */
+    public NDArray getData(int dataType, NDSize count, NDSize offset) {
+
+        int size = (int) count.getElementsProduct();
+
+        switch (dataType) {
+            case DataType.Int8:
+                byte[] byteData = new byte[size];
+                getDataDirect(dataType, byteData, count, offset);
+                return new NDArray(byteData, count.getData());
+
+            case DataType.Int16:
+                short[] shortData = new short[size];
+                getDataDirect(dataType, shortData, count, offset);
+                return new NDArray(shortData, count.getData());
+
+            case DataType.Int32:
+                int[] intData = new int[size];
+                getDataDirect(dataType, intData, count, offset);
+                return new NDArray(intData, count.getData());
+
+            case DataType.Int64:
+                long[] longData = new long[size];
+                getDataDirect(dataType, longData, count, offset);
+                return new NDArray(longData, count.getData());
+
+            case DataType.Float:
+                float[] floatData = new float[size];
+                getDataDirect(dataType, floatData, count, offset);
+                return new NDArray(floatData, count.getData());
+
+            case DataType.Double:
+                double[] doubleData = new double[size];
+                getDataDirect(dataType, doubleData, count, offset);
+                return new NDArray(doubleData, count.getData());
+
+            default:
+                throw new IllegalArgumentException("Error : data type not supported");
+        }
+    }
+
+    /**
+     * Get written ND-Array from data array.
+     *
+     * @return nd array
+     */
+    public NDArray getData() {
+        return getData(getDataType(), getDataExtent(), new NDSize());
+    }
+
+    /**
+     * Get written ND-Array from data array.
+     *
+     * @param offset offset
+     * @return nd array
+     */
+    public NDArray getData(NDSize offset) {
+        return getData(getDataType(), getDataExtent(), offset);
+    }
 
     //--------------------------------------------------
     // Overrides

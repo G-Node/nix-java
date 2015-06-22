@@ -358,6 +358,18 @@ public class TestTag {
         List<DataArray> reference = new ArrayList<DataArray>();
         reference.add(data_array);
 
+        NDArray data = new NDArray(new int[]{2, 10, 5}, DataType.Int32);
+        int value;
+        for (int i = 0; i != 2; ++i) {
+            value = 0;
+            for (int j = 0; j != 10; ++j) {
+                for (int k = 0; k != 5; ++k) {
+                    data.setIntData(new int[]{i, j, k}, value++);
+                }
+            }
+        }
+        data_array.setData(data);
+
         setDim = data_array.appendSetDimension();
         List<String> labels = Arrays.asList("label_a", "label_b");
         setDim.setLabels(labels);
@@ -377,7 +389,17 @@ public class TestTag {
         segment_tag.setExtent(extent);
         segment_tag.setUnits(units);
 
-        // TODO DataView tests
+        DataView retrieved_data = position_tag.retrieveData(0);
+        NDSize data_size = retrieved_data.getDataExtent();
+        assertEquals(data_size.getSize(), 3);
+        int[] data_size_arr = data_size.getData();
+        assertTrue(data_size_arr[0] == 1 && data_size_arr[1] == 1 && data_size_arr[2] == 1);
+
+        retrieved_data = segment_tag.retrieveData(0);
+        data_size = retrieved_data.getDataExtent();
+        assertEquals(data_size.getSize(), 3);
+        data_size_arr = data_size.getData();
+        assertTrue(data_size_arr[0] == 1 && data_size_arr[1] == 6 && data_size_arr[2] == 2);
 
         block.deleteTag(position_tag);
         block.deleteTag(segment_tag);

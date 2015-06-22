@@ -740,6 +740,31 @@ public class Tag extends EntityWithSources {
     boolean deleteFeature(@Const @ByRef Feature feature);
 
     //--------------------------------------------------
+    // Methods for data retrieval
+    //--------------------------------------------------
+
+    /**
+     * Returns the data associated with a certain reference.
+     *
+     * @param referenceIndex The index of the reference of which
+     *                       the data should be returned.
+     * @return the data
+     */
+    public native
+    @ByVal
+    DataView retrieveData(@Cast("size_t") long referenceIndex);
+
+    /**
+     * Returns the data stored in the selected Feature.
+     *
+     * @param featureIndex The index of the requested feature.
+     * @return The data stored in the Feature.
+     */
+    public native
+    @ByVal
+    DataView retrieveFeatureData(@Cast("size_t") long featureIndex);
+
+    //--------------------------------------------------
     // Overrides
     //--------------------------------------------------
 
