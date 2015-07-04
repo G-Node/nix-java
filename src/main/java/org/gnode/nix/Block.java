@@ -3,10 +3,16 @@ package org.gnode.nix;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.annotation.*;
 import org.gnode.nix.base.EntityWithMetadata;
-import org.gnode.nix.internal.*;
+import org.gnode.nix.internal.DateUtils;
+import org.gnode.nix.internal.None;
+import org.gnode.nix.internal.OptionalUtils;
+import org.gnode.nix.internal.VectorUtils;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Platform(value = "linux",
         include = {"<nix/Block.hpp>"},
@@ -20,7 +26,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Constructor that creates an uninitialized Block.
-     * <p/>
+     * <p>
      * Calling any method on an uninitialized block will throw a {@link java.lang.RuntimeException}.
      */
     public Block() {
@@ -184,7 +190,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Associate the entity with some metadata.
-     * <p/>
+     * <p>
      * Calling this method will replace previously stored information.
      *
      * @param metadata The {@link Section} that should be associated
@@ -196,7 +202,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Associate the entity with some metadata.
-     * <p/>
+     * <p>
      * Calling this method will replace previously stored information.
      *
      * @param id The id of the {@link Section} that should be associated
@@ -303,6 +309,87 @@ public class Block extends EntityWithMetadata {
         return sources().getSources();
     }
 
+    /**
+     * Get all root sources associated with this block.
+     * <p>
+     * The parameter filter can be used to filter sources by various
+     * criteria.
+     *
+     * @param filter A filter function.
+     * @return A list containing the matching root sources.
+     */
+    public List<Source> getSources(Predicate<Source> filter) {
+        return getSources().stream().filter(filter).collect(Collectors.toList());
+    }
+
+    /**
+     * Get all sources in this block recursively.
+     * <p>
+     * This method traverses the tree of all sources in the block. The traversal
+     * is accomplished via breadth first and can be limited in depth. On each node or
+     * source a filter is applied. If the filter returns true the respective source
+     * will be added to the result list.
+     * By default a filter is used that accepts all sources.
+     *
+     * @param filter   A filter function.
+     * @param maxDepth The maximum depth of traversal.
+     * @return A list containing the matching sources.
+     */
+    public List<Source> findSources(Predicate<Source> filter, int maxDepth) {
+        List<Source> result = new ArrayList<>();
+        for (Source source : getSources()) {
+            result.addAll(source.findSources(filter, maxDepth));
+        }
+        return result;
+    }
+
+    /**
+     * Get all sources in this block recursively.
+     * <p>
+     * This method traverses the tree of all sources in the block. The traversal
+     * is accomplished via breadth first and can be limited in depth. On each node or
+     * source a filter is applied. If the filter returns true the respective source
+     * will be added to the result list.
+     * By default a sources at all depths are considered.
+     *
+     * @param filter A filter function.
+     * @return A list containing the matching sources.
+     */
+    public List<Source> findSources(Predicate<Source> filter) {
+        return findSources(filter, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Get all sources in this block recursively.
+     * <p>
+     * This method traverses the tree of all sources in the block. The traversal
+     * is accomplished via breadth first and can be limited in depth. On each node or
+     * source a filter is applied. If the filter returns true the respective source
+     * will be added to the result list.
+     * By default a filter is used that accepts all sources.
+     *
+     * @param maxDepth The maximum depth of traversal.
+     * @return A list containing the matching sources.
+     */
+    public List<Source> findSources(int maxDepth) {
+        return findSources((Source s) -> true, maxDepth);
+    }
+
+    /**
+     * Get all sources in this block recursively.
+     * <p>
+     * This method traverses the tree of all sources in the block. The traversal
+     * is accomplished via breadth first and can be limited in depth. On each node or
+     * source a filter is applied. If the filter returns true the respective source
+     * will be added to the result list.
+     * By default a filter is used that accepts all sources at all depths.
+     *
+     * @return A list containing the matching sources.
+     */
+    public List<Source> findSources() {
+        return findSources((Source s) -> true, Integer.MAX_VALUE);
+    }
+
     private native
     @Name("createSource")
     @ByVal
@@ -325,7 +412,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Deletes a root source.
-     * <p/>
+     * <p>
      * This will also delete all child sources of this root source from the file.
      * The deletion of a source can't be undone.
      *
@@ -338,7 +425,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Deletes a root source.
-     * <p/>
+     * <p>
      * This will also delete all child sources of this root source from the file.
      * The deletion of a source can't be undone.
      *
@@ -426,6 +513,19 @@ public class Block extends EntityWithMetadata {
     }
 
     /**
+     * Get data arrays within this block.
+     * <p>
+     * The parameter filter can be used to filter data arrays by various
+     * criteria.
+     *
+     * @param filter A filter function.
+     * @return A list that contains all filtered data arrays.
+     */
+    public List<DataArray> getDataArrays(Predicate<DataArray> filter) {
+        return getDataArrays().stream().filter(filter).collect(Collectors.toList());
+    }
+
+    /**
      * Returns the number of all data arrays of the block.
      *
      * @return The number of data arrays of the block.
@@ -462,7 +562,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Deletes a data array from this block.
-     * <p/>
+     * <p>
      * This deletes a data array and all its dimensions from the block and the file.
      * The deletion can't be undone.
      *
@@ -475,7 +575,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Deletes a data array from this block.
-     * <p/>
+     * <p>
      * This deletes a data array and all its dimensions from the block and the file.
      * The deletion can't be undone.
      *
@@ -563,6 +663,19 @@ public class Block extends EntityWithMetadata {
     }
 
     /**
+     * Get tags within this block.
+     * <p>
+     * The parameter filter can be used to filter tags by various
+     * criteria.
+     *
+     * @param filter A filter function.
+     * @return A list that contains all filtered tags.
+     */
+    public List<Tag> getTags(Predicate<Tag> filter) {
+        return getTags().stream().filter(filter).collect(Collectors.toList());
+    }
+
+    /**
      * Returns the number of tags within this block.
      *
      * @return The number of tags.
@@ -595,7 +708,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Deletes a tag from the block.
-     * <p/>
+     * <p>
      * Deletes a tag with all its features from the block and the file.
      * The deletion can't be undone.
      *
@@ -608,7 +721,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Deletes a tag from the block.
-     * <p/>
+     * <p>
      * Deletes a tag with all its features from the block and the file.
      * The deletion can't be undone.
      *
@@ -690,10 +803,22 @@ public class Block extends EntityWithMetadata {
     /**
      * Get multi tags within this block.
      *
-     * @return A list that contains all filtered multi tags.
+     * @return A list that contains all multi tags.
      */
     public List<MultiTag> getMultiTags() {
         return multiTags().getMultiTags();
+    }
+
+    /**
+     * Get multi tags within this block.
+     * <p>
+     * The parameter filter can be used to filter multi tags by various     * criteria.
+     *
+     * @param filter A filter function.
+     * @return A list that contains all filtered multi tags.
+     */
+    public List<MultiTag> getMultiTags(Predicate<MultiTag> filter) {
+        return getMultiTags().stream().filter(filter).collect(Collectors.toList());
     }
 
     /**
@@ -729,7 +854,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Deletes a multi tag from the block.
-     * <p/>
+     * <p>
      * Deletes a multi tag and all its features from the block and the file.
      * The deletion can't be undone.
      *
@@ -742,7 +867,7 @@ public class Block extends EntityWithMetadata {
 
     /**
      * Deletes a multi tag from the block.
-     * <p/>
+     * <p>
      * Deletes a multi tag and all its features from the block and the file.
      * The deletion can't be undone.
      *
