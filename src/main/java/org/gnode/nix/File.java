@@ -8,8 +8,11 @@ import org.gnode.nix.internal.DateUtils;
 import org.gnode.nix.internal.VectorUtils;
 import org.gnode.nix.valid.Result;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Platform(value = "linux",
         include = {"<nix/File.hpp>"},
@@ -27,7 +30,7 @@ public class File extends ImplContainer implements Comparable<File> {
 
     /**
      * Constructor that creates an uninitialized File.
-     * <p/>
+     * <p>
      * Calling any method on an uninitialized file will throw a {@link java.lang.RuntimeException}.
      */
     public File() {
@@ -209,6 +212,19 @@ public class File extends ImplContainer implements Comparable<File> {
         return blocks().getBlocks();
     }
 
+    /**
+     * Get all blocks within this file.
+     * <p>
+     * The parameter filter can be used to filter block by various
+     * criteria.
+     *
+     * @param filter A filter function.
+     * @return A list of filtered Block entities.
+     */
+    public List<Block> getBlocks(Predicate<Block> filter) {
+        return getBlocks().stream().filter(filter).collect(Collectors.toList());
+    }
+
 
     //--------------------------------------------------
     // Methods concerning sections
@@ -287,14 +303,60 @@ public class File extends ImplContainer implements Comparable<File> {
 
     /**
      * Get all root sections within this file.
-     * <p/>
-     * The parameter filter can be used to filter sections by various
-     * criteria. By default a filter is used that accepts all sections.
      *
      * @return A vector of filtered Section entities.
      */
     public List<Section> getSections() {
         return sections().getSections();
+    }
+
+    /**
+     * Get all root sections within this file.
+     * <p>
+     * The parameter filter can be used to filter sections by various
+     * criteria.
+     *
+     * @param filter A filter function.
+     * @return A list of filtered Section entities.
+     */
+    public List<Section> getSections(Predicate<Section> filter) {
+        return getSections().stream().filter(filter).collect(Collectors.toList());
+    }
+
+    /**
+     * Get all sections in this file recursively.
+     * <p>
+     * This method traverses the trees of all section in the file. The traversal
+     * is accomplished via breadth first and can be limited in depth. On each node or
+     * section a filter is applied. If the filter returns true the respective section
+     * will be added to the result list.
+     *
+     * @param filter   A filter function.
+     * @param maxDepth The maximum depth of traversal.
+     * @return A vector containing the matching sections.
+     */
+    public List<Section> findSections(Predicate<Section> filter, int maxDepth) {
+        List<Section> result = new ArrayList<>();
+        for (Section section : getSections()) {
+            result.addAll(section.findSections(filter, maxDepth));
+        } 
+        return result;
+    }
+
+    /**
+     * Get all sections in this file recursively.
+     * <p>
+     * This method traverses the trees of all section in the file. The traversal
+     * is accomplished via breadth first and can be limited in depth. On each node or
+     * section a filter is applied. If the filter returns true the respective section
+     * will be added to the result list.
+     * By default a filter is used that accepts all sections.
+     *
+     * @param maxDepth The maximum depth of traversal.
+     * @return A vector containing the matching sections.
+     */
+    public List<Section> findSections(int maxDepth) {
+        return findSections((Section s) -> true, maxDepth);
     }
 
     private native
@@ -348,7 +410,7 @@ public class File extends ImplContainer implements Comparable<File> {
 
     /**
      * Read the NIX format version from the file.
-     * <p/>
+     * <p>
      * The version consist of three integers standing for the major, minor and patch version of the nix format.
      *
      * @return The format version of the NIX file.
