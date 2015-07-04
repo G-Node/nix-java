@@ -11,6 +11,8 @@ import org.gnode.nix.internal.VectorUtils;
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Platform(value = "linux",
         include = {"<nix/Tag.hpp>"},
@@ -27,7 +29,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Constructor that creates an uninitialized Tag.
-     * <p/>
+     * <p>
      * Calling any method on an uninitialized Tag will throw a {@link RuntimeException}
      * exception.
      */
@@ -192,7 +194,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Associate the entity with some metadata.
-     * <p/>
+     * <p>
      * Calling this method will replace previously stored information.
      *
      * @param metadata The {@link Section} that should be associated
@@ -204,7 +206,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Associate the entity with some metadata.
-     * <p/>
+     * <p>
      * Calling this method will replace previously stored information.
      *
      * @param id The id of the {@link Section} that should be associated
@@ -297,7 +299,7 @@ public class Tag extends EntityWithSources {
     /**
      * Get all sources associated with this entity.
      *
-     * @return All associated sources that match the given filter as a vector
+     * @return All associated sources that match the given filter as a list
      */
     public List<Source> getSources() {
         return sources().getSources();
@@ -307,10 +309,10 @@ public class Tag extends EntityWithSources {
 
     /**
      * Set all sources associations for this entity.
-     * <p/>
+     * <p>
      * All previously existing associations will be overwritten.
      *
-     * @param sources A vector with all sources.
+     * @param sources A list with all sources.
      */
     public void setSources(List<Source> sources) {
         sources(new VectorUtils.SourceVector(sources));
@@ -318,7 +320,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Associate a new source with the entity.
-     * <p/>
+     * <p>
      * If a source with the given id already is associated with the
      * entity, the call will have no effect.
      *
@@ -328,7 +330,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Associate a new source with the entity.
-     * <p/>
+     * <p>
      * Calling this method will have no effect if the source is already associated to this entity.
      *
      * @param source The source to add.
@@ -337,7 +339,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Remove a source from the list of associated sources.
-     * <p/>
+     * <p>
      * This method just removes the association between the entity and the source.
      * The source itself will not be deleted from the file.
      *
@@ -350,7 +352,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Remove a source from the list of associated sources.
-     * <p/>
+     * <p>
      * This method just removes the association between the entity and the source.
      * The source itself will not be deleted from the file.
      *
@@ -372,7 +374,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Gets the units of the tag.
-     * <p/>
+     * <p>
      * The units are applied to all values for position and extent in order to calculate the
      * right position vectors in referenced data arrays.
      *
@@ -406,7 +408,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Gets the position of a tag.
-     * <p/>
+     * <p>
      * The position is a vector that points into referenced DataArrays.
      *
      * @return The position vector list.
@@ -430,7 +432,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Gets the extent of a tag.
-     * <p/>
+     * <p>
      * Given a specified position vector, the extent vector defined the size
      * of a region of interest in the referenced DataArray entities.
      *
@@ -544,7 +546,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Remove a DataArray from the list of referenced data of the tag.
-     * <p/>
+     * <p>
      * This method just removes the association between the data array and the
      * tag, the data array itself will not be removed from the file.
      *
@@ -557,7 +559,7 @@ public class Tag extends EntityWithSources {
 
     /**
      * Remove a DataArray from the list of referenced data of the tag.
-     * <p/>
+     * <p>
      * This method just removes the association between the data array and the
      * tag, the data array itself will not be removed from the file.
      *
@@ -574,21 +576,34 @@ public class Tag extends EntityWithSources {
 
     /**
      * Get all referenced data arrays associated with this tag.
-     * <p/>
+     * <p>
      * Always uses filter that accepts all sources.
      *
-     * @return The filtered dimensions as a vector
+     * @return The filtered dimensions as a list
      */
     public List<DataArray> getReferences() {
         return references().getDataArrays();
+    }
+
+    /**
+     * Get referenced data arrays associated with this tag.
+     * <p>
+     * The parameter filter can be used to filter data arrays by various
+     * criteria.
+     *
+     * @param filter A filter function.
+     * @return A list containing the matching data arrays.
+     */
+    public List<DataArray> getReferences(Predicate<DataArray> filter) {
+        return getReferences().stream().filter(filter).collect(Collectors.toList());
     }
 
     private native void references(@Const @ByRef VectorUtils.DataArrayVector references);
 
     /**
      * Sets all referenced DataArray entities.
-     * <p/>
-     * Previously referenced data arrays, that are not in the references vector
+     * <p>
+     * Previously referenced data arrays, that are not in the references list
      * will be removed.
      *
      * @param references All referenced arrays.
@@ -676,10 +691,23 @@ public class Tag extends EntityWithSources {
     /**
      * Get all Features of this tag.
      *
-     * @return A vector containing the matching features.
+     * @return A list containing the matching features.
      */
     public List<Feature> getFeatures() {
         return features().getFeatures();
+    }
+
+    /**
+     * Get all Features of this tag.
+     * <p>
+     * The parameter filter can be used to filter features by various
+     * criteria.
+     *
+     * @param filter A filter function.
+     * @return A list containing the matching features.
+     */
+    public List<Feature> getFeatures(Predicate<Feature> filter) {
+        return getFeatures().stream().filter(filter).collect(Collectors.toList());
     }
 
     private native
